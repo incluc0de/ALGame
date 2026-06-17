@@ -310,9 +310,10 @@ O projeto evolui a partir da proposta do **IncluCode**, investigando mecanismos 
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Autores
 
 **Leandro Vaguetti**
+**Hially Rabelo Vaguetti**
 
 Projeto desenvolvido no contexto de pesquisa aplicada em Inteligência Artificial, Jogos Educacionais Digitais e Aprendizagem Adaptativa.
 
