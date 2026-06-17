@@ -2,6 +2,8 @@
 
 > Jogo Educacional Adaptativo para o Ensino de Algoritmos baseado em Agentes Inteligentes, Gamificação e Aprendizagem Adaptativa.
 
+ALGame - Jogo Digital [https://algame-zeta.vercel.app/]
+
 ## 📖 Sobre o Projeto
 
 O **ALGame (Adaptive Learning Game)** é um ambiente gamificado para aprendizagem de algoritmos que integra um jogo digital desenvolvido em **Phaser 3** com um **Agente Pedagógico Adaptativo** orquestrado por **n8n** e modelos de IA.
