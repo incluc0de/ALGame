@@ -9,6 +9,7 @@ export const CONFIG = {
       nivel_aprendizagem: 'iniciante',
       topico: 'variaveis',
       perfil_cognitivo: 'TDAH',
+      linguagem: "javascript",
       adaptacoes_preferenciais: [
         'enunciado_curto',
         'passos_sequenciais',
