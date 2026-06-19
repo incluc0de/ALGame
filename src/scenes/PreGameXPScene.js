@@ -31,9 +31,13 @@ export default class PreGameXPScene extends Phaser.Scene {
     this.load.image("xp", "assets/xp.png");
     this.load.image("bomb", "assets/bomb.png");
 
-    this.load.spritesheet("player", "assets/player.png", {
+    /*this.load.spritesheet("player", "assets/player.png", {
       frameWidth: 227,
       frameHeight: 730
+    });*/
+    this.load.spritesheet("player", "assets/player.png", {
+      frameWidth: 307,
+      frameHeight: 1024
     });
   }
 
@@ -51,7 +55,7 @@ export default class PreGameXPScene extends Phaser.Scene {
       .refreshBody();
 
     this.platforms
-      .create(W * 0.75, H * 0.66, "plataforma")
+      .create(W * 0.8, H * 0.66, "plataforma")
       .setDisplaySize(300, 100)
       .refreshBody();
 
@@ -61,14 +65,14 @@ export default class PreGameXPScene extends Phaser.Scene {
       .refreshBody();
 
     this.platforms
-      .create(W * 0.78, H * 0.34, "plataforma")
+      .create(W * 0.82, H * 0.34, "plataforma")
       .setDisplaySize(300, 100)
       .refreshBody();
 
     this.player = this.physics.add.sprite(120, H - 170, "player");
     this.player.setBounce(0.15);
     this.player.setCollideWorldBounds(true);
-    this.player.setScale(0.12);
+    this.player.setScale(0.15);
 
     this.createAnimations();
 
@@ -149,7 +153,7 @@ export default class PreGameXPScene extends Phaser.Scene {
       }
     });
   }
-
+ /*
   createAnimations() {
     this.anims.create({
       key: "left",
@@ -177,7 +181,35 @@ export default class PreGameXPScene extends Phaser.Scene {
       repeat: -1
     });
   }
+*/
 
+createAnimations() {
+  this.anims.create({
+    key: "left",
+    frames: this.anims.generateFrameNumbers("player", {
+      start: 3,
+      end: 4
+    }),
+    frameRate: 6,
+    repeat: -1
+  });
+
+  this.anims.create({
+    key: "turn",
+    frames: [{ key: "player", frame: 2 }],
+    frameRate: 10
+  });
+
+  this.anims.create({
+    key: "right",
+    frames: this.anims.generateFrameNumbers("player", {
+      start: 0,
+      end: 1
+    }),
+    frameRate: 6,
+    repeat: -1
+  });
+}
   update() {
     if (this.gameFinished) return;
 
