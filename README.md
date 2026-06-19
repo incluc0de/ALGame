@@ -286,7 +286,7 @@ O ALGame faz parte de uma linha de pesquisa voltada para:
 * Jogos Educacionais Digitais;
 * Inteligência Artificial na Educação.
 
-O projeto evolui a partir da proposta do **IncluCode**, investigando mecanismos para adaptação automática de desafios e intervenções pedagógicas em ambientes de aprendizagem digital.
+O projeto evolui a partir da proposta do **IncluC0de**, investigando mecanismos para adaptação automática de desafios e intervenções pedagógicas em ambientes de aprendizagem digital.
 
 ---
 
@@ -322,8 +322,8 @@ O projeto evolui a partir da proposta do **IncluCode**, investigando mecanismos 
 
 ## 👨‍💻 Autores
 
-**Leandro Vaguetti**
-**Hially Rabelo Vaguetti**
+* **Leandro Vaguetti**
+* **Hially Rabelo Vaguetti**
 
 Projeto desenvolvido no contexto de pesquisa aplicada em Inteligência Artificial, Jogos Educacionais Digitais e Aprendizagem Adaptativa.
 
