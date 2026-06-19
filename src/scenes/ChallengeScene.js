@@ -32,19 +32,19 @@ export default class ChallengeScene extends Phaser.Scene {
     // variação de linguagem
     const placeholders = {
       pseudocodigo:
-        "Exemplo: Leia numero\nSE numero > 0 ENTÃO\n   Escreva 'positivo'",
+        "Exemplo:\n Leia numero\nSE numero > 0 ENTÃO\n   Escreva 'positivo'",
     
       portugol:
-        "Exemplo: leia(numero)\nse numero > 0 entao\n   escreval('positivo')\nfimse",
+        "Exemplo:\n leia(numero)\nse numero > 0 entao\n   escreval('positivo')\nfimse",
     
       javascript:
-        "Exemplo: let numero = 3;\nif(numero > 0){\n   console.log('positivo');\n}",
+        "Exemplo:\n let numero = 3;\nif(numero > 0){\n   console.log('positivo');\n}",
     
       python:
-        "Exemplo: numero = 3\nif numero > 0:\n    print('positivo')",
+        "Exemplo:\n numero = 3\nif numero > 0:\n    print('positivo')",
     
       c:
-        "Exemplo: int numero = 3;\nif(numero > 0){\n   printf('positivo');\n}"
+        "Exemplo:\n int numero = 3;\nif(numero > 0){\n   printf('positivo');\n}"
     };
     
     const placeholder =
