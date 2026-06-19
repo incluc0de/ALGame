@@ -85,7 +85,7 @@ export default class PreGameXPScene extends Phaser.Scene {
     });
 
     this.xps.children.iterate((child) => {
-      child.setScale(0.035);
+      child.setScale(0.05);
       child.setBounceY(Phaser.Math.FloatBetween(0.3, 0.7));
     });
 
@@ -226,7 +226,7 @@ export default class PreGameXPScene extends Phaser.Scene {
 
     const bug = this.bombs.create(x, 16, "bomb");
 
-    bug.setScale(0.1);
+    bug.setScale(0.05);
     bug.setBounce(1);
     bug.setCollideWorldBounds(true);
     bug.setVelocity(Phaser.Math.Between(-180, 180), 20);
