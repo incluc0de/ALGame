@@ -32,25 +32,25 @@ export default class ChallengeScene extends Phaser.Scene {
     // variação de linguagem
     const placeholders = {
       pseudocodigo:
-        "Exemplo: Leia numero\\nSE numero > 0 ENTÃO\\n   Escreva 'positivo'",
+        "Exemplo: Leia numero\nSE numero > 0 ENTÃO\n   Escreva 'positivo'",
     
       portugol:
-        "Exemplo: leia(numero)\\nse numero > 0 entao\\n   escreval('positivo')\\nfimse",
+        "Exemplo: leia(numero)\nse numero > 0 entao\n   escreval('positivo')\nfimse",
     
       javascript:
-        "Exemplo: let numero = 3;\\nif(numero > 0){\\n   console.log('positivo');\\n}",
+        "Exemplo: let numero = 3;\nif(numero > 0){\n   console.log('positivo');\n}",
     
       python:
-        "Exemplo: numero = 3\\nif numero > 0:\\n    print('positivo')",
+        "Exemplo: numero = 3\nif numero > 0:\n    print('positivo')",
     
       c:
-        "Exemplo: int numero = 3;\\nif(numero > 0){\\n   printf('positivo');\\n}"
+        "Exemplo: int numero = 3;\nif(numero > 0){\n   printf('positivo');\n}"
     };
     
     const placeholder =
       placeholders[linguagem] || placeholders.pseudocodigo;
 
-    this.answerElement = this.add.dom(512, 440).createFromHTML(`<textarea id="answerBox" style="width:760px;height:120px;font-size:18px;font-family:Consolas,monospace;padding:12px;border-radius:8px;border:2px solid #60a5fa;background:#0f172a;color:white;resize:none;outline:none;" placeholder="${placeholder}"></textarea>`);
+    this.answerElement = this.add.dom(512, 440).createFromHTML(`<textarea id="answerBox" style="width:760px;height:120px;font-size:18px;font-family:Consolas,monospace;padding:12px;border-radius:8px;border:2px solid #60a5fa;background:#0f172a;color:white;resize:none;outline:none;" placeholder="${placeholder.replaceAll('"', '&quot;')}"></textarea>`);
     addButton(this, 360, 565, "Enviar Solução", () => this.submitAnswer(), 260);
     addButton(this, 660, 565, "Voltar ao Menu", () => { GameState.resetSession(); this.scene.start("MenuScene"); }, 260);
   }
