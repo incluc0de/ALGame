@@ -22,7 +22,7 @@ export const CONFIG = {
   GAME_WIDTH: 1024,
   GAME_HEIGHT: 640,
 
-  PRE_GAME_XP_TIME: 30,
+  PRE_GAME_XP_TIME: 60,
 
   AGENT_WEBHOOK_URL: "https://n8n.incluc0de.com.br/webhook/algame",
 
@@ -33,7 +33,7 @@ export const CONFIG = {
       nivel_aprendizagem: "iniciante",
       topico: "condicionais",
       perfil_cognitivo: "TDAH",
-      linguagem: "pseudocodigo",
+      linguagem: "c",
       adaptacoes_preferenciais: [
         "enunciado_curto",
         "passos_sequenciais",
