@@ -16,6 +16,9 @@ const gameConfig = {
   height: CONFIG.GAME_HEIGHT,
   parent: "game",
   backgroundColor: "#111827",
+  dom: {
+    createContainer: true
+  },
   physics: {
     default: "arcade",
     arcade: {
