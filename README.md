@@ -207,8 +207,11 @@ POST /agent
 ```
 ### Linguagens suportadas
 
-```http
-Pseudocódigo (pseudocodigo), Portugol (portugol), C (c), Javascript (javascript) e Python (python) 
+```
+Pseudocódigo (pseudocodigo), 
+Portugol (portugol), 
+C (c), 
+Javascript (javascript) e Python (python) 
 ```
  
 
