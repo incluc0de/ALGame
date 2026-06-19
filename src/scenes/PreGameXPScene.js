@@ -80,7 +80,7 @@ export default class PreGameXPScene extends Phaser.Scene {
 
     this.xps = this.physics.add.group({
       key: "xp",
-      repeat: 11,
+      repeat: 12,
       setXY: {
         x: 50,
         y: 0,
