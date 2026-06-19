@@ -53,6 +53,13 @@ export default class ChallengeScene extends Phaser.Scene {
     this.answerElement = this.add.dom(512, 440).createFromHTML(`<textarea id="answerBox" style="width:760px;height:120px;font-size:18px;font-family:Consolas,monospace;padding:12px;border-radius:8px;border:2px solid #60a5fa;background:#0f172a;color:white;resize:none;outline:none;" placeholder="${placeholder.replaceAll('"', '&quot;')}"></textarea>`);
     addButton(this, 360, 565, "Enviar Solução", () => this.submitAnswer(), 260);
     addButton(this, 660, 565, "Voltar ao Menu", () => { GameState.resetSession(); this.scene.start("MenuScene"); }, 260);
+    this.add.dom(512, 440).createFromHTML(`
+    <input 
+      type="text" 
+      value="teste"
+      style="width:400px;height:50px;font-size:24px;"
+    />
+  `);
   }
   async submitAnswer() {
     const answer = this.answerElement.getChildByID("answerBox").value.trim();
