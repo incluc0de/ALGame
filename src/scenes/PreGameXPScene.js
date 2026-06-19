@@ -47,22 +47,22 @@ export default class PreGameXPScene extends Phaser.Scene {
 
     this.platforms
       .create(W / 2, H - 40, "plataforma")
-      .setDisplaySize(W, 80)
+      .setDisplaySize(W, 100)
       .refreshBody();
 
     this.platforms
       .create(W * 0.75, H * 0.66, "plataforma")
-      .setDisplaySize(300, 60)
+      .setDisplaySize(300, 100)
       .refreshBody();
 
     this.platforms
       .create(W * 0.22, H * 0.47, "plataforma")
-      .setDisplaySize(300, 60)
+      .setDisplaySize(250, 100)
       .refreshBody();
 
     this.platforms
       .create(W * 0.78, H * 0.34, "plataforma")
-      .setDisplaySize(300, 60)
+      .setDisplaySize(250, 100)
       .refreshBody();
 
     this.player = this.physics.add.sprite(120, H - 170, "player");
