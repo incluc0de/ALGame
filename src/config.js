@@ -8,12 +8,12 @@ export const CONFIG = {
     profile: {
       nivel_aprendizagem: 'iniciante',
       topico: 'variaveis',
-      perfil_cognitivo: 'Altas Habilidades',
+      perfil_cognitivo: 'TDAH',
       linguagem: "c",
       adaptacoes_preferenciais: [
-        /*'enunciado_curto',
+        'enunciado_curto',
         'passos_sequenciais',
-        'objetivo_explicito',*/
+        'objetivo_explicito',
       ],
     },
   },
