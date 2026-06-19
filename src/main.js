@@ -6,7 +6,35 @@ import ChallengeScene from "./scenes/ChallengeScene.js";
 import InterventionScene from "./scenes/InterventionScene.js";
 import ResultScene from "./scenes/ResultScene.js";
 
-new Phaser.Game({
+import PreGameXPScene from "./scenes/PreGameXPScene.js";
+
+//import { CONFIG } from "./config.js";
+
+const gameConfig = {
+  type: Phaser.AUTO,
+  width: CONFIG.GAME_WIDTH,
+  height: CONFIG.GAME_HEIGHT,
+  parent: "game",
+  backgroundColor: "#111827",
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 300 },
+      debug: false
+    }
+  },
+  scene: [
+    BootScene,
+    PreGameXPScene,
+    MenuScene,
+    ChallengeScene,
+    InterventionScene,
+    ResultScene
+  ]
+};
+
+new Phaser.Game(gameConfig);
+/*new Phaser.Game({
   type: Phaser.AUTO,
   width: CONFIG.GAME_WIDTH,
   height: CONFIG.GAME_HEIGHT,
@@ -14,4 +42,4 @@ new Phaser.Game({
   backgroundColor: "#111827",
   dom: { createContainer: true },
   scene: [BootScene, MenuScene, ChallengeScene, InterventionScene, ResultScene]
-});
+});*/
