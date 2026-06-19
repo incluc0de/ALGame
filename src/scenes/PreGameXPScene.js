@@ -36,8 +36,8 @@ export default class PreGameXPScene extends Phaser.Scene {
       frameHeight: 730
     });*/
     this.load.spritesheet("player", "assets/player.png", {
-      frameWidth: 307,
-      frameHeight: 1024
+      frameWidth: 300,
+      frameHeight: 700//1024 
     });
   }
 
@@ -51,28 +51,28 @@ export default class PreGameXPScene extends Phaser.Scene {
 
     this.platforms
       .create(W / 2, H - 40, "plataforma")
-      .setDisplaySize(W, 100)
+      .setDisplaySize(W, 60)
       .refreshBody();
 
     this.platforms
-      .create(W * 0.8, H * 0.66, "plataforma")
-      .setDisplaySize(300, 100)
+      .create(W * 0.85, H * 0.66, "plataforma")
+      .setDisplaySize(300, 60)
       .refreshBody();
 
     this.platforms
       .create(W * 0.22, H * 0.47, "plataforma")
-      .setDisplaySize(300, 100)
+      .setDisplaySize(300, 60)
       .refreshBody();
 
     this.platforms
-      .create(W * 0.82, H * 0.34, "plataforma")
-      .setDisplaySize(300, 100)
+      .create(W * 0.9, H * 0.4, "plataforma")
+      .setDisplaySize(300, 60)
       .refreshBody();
 
     this.player = this.physics.add.sprite(120, H - 170, "player");
     this.player.setBounce(0.15);
     this.player.setCollideWorldBounds(true);
-    this.player.setScale(0.15);
+    this.player.setScale(0.12);
 
     this.createAnimations();
 
