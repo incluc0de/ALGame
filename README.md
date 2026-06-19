@@ -200,11 +200,12 @@ POST /agent
   "profile": {
     "nivel_aprendizagem": "iniciante",
     "topico": "condicionais",
-    "perfil_cognitivo": "TDAH"
+    "perfil_cognitivo": "TDAH",
+    "linguagem":"pseudocodigo", 
   }
 }
 ```
-
+Linguagens suportadas : Pseudocódigo (pseudocodigo), Portugol (portugol), C (c), Javascript (javascript) e Python (python) 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
