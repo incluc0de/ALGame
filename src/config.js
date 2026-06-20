@@ -31,9 +31,9 @@ export const CONFIG = {
     sessionId: "sess_001",
     profile: {
       nivel_aprendizagem: "iniciante",
-      topico: "condicionais",
+      topico: "variaveis",
       perfil_cognitivo: "TDAH",
-      linguagem: "c",
+      linguagem: "Pseudocódigo",
       adaptacoes_preferenciais: [
         "enunciado_curto",
         "passos_sequenciais",
