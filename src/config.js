@@ -22,7 +22,7 @@ export const CONFIG = {
   GAME_WIDTH: 1024,
   GAME_HEIGHT: 640,
 
-  PRE_GAME_XP_TIME: 5,
+  PRE_GAME_XP_TIME: 30,
 
   AGENT_WEBHOOK_URL: "https://n8n.incluc0de.com.br/webhook/algame",
 
