@@ -7,6 +7,7 @@ import InterventionScene from "./scenes/InterventionScene.js";
 import ResultScene from "./scenes/ResultScene.js";
 
 import PreGameXPScene from "./scenes/PreGameXPScene.js";
+import IntroVideoScene from "./scenes/IntroVideoScene.js";
 
 //import { CONFIG } from "./config.js";
 
@@ -28,6 +29,7 @@ const gameConfig = {
   },
   scene: [
     BootScene,
+    IntroVideoScene,
     PreGameXPScene,
     MenuScene,
     ChallengeScene,
