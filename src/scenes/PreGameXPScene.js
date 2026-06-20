@@ -23,6 +23,9 @@ export default class PreGameXPScene extends Phaser.Scene {
 
     this.xpText = null;
     this.timerText = null;
+
+    //---
+    this.timerEvent = null;
   }
 
   preload() {
@@ -278,7 +281,7 @@ createAnimations() {
     });
   }
 
-  finishPreGame() {
+  /*finishPreGame() {
     if (this.gameFinished) return;
 
     const W = CONFIG.GAME_WIDTH;
@@ -318,6 +321,51 @@ createAnimations() {
       const returnScene = GameState.data.preGameReturnScene || "MenuScene";
       GameState.data.preGameReturnScene = "MenuScene";
       GameState.save();
+      this.scene.start(returnScene);
+    });
+  }*/
+  finishPreGame() {
+    if (this.gameFinished) return;
+  
+    this.gameFinished = true;
+  
+    if (this.timerEvent) {
+      this.timerEvent.remove(false);
+      this.timerEvent = null;
+    }
+  
+    GameState.data.xp += this.collectedXP;
+    GameState.data.level = Math.floor(GameState.data.xp / 300) + 1;
+  
+    const returnScene = GameState.data.preGameReturnScene || "MenuScene";
+  
+    GameState.data.preGameReturnScene = "MenuScene";
+    GameState.save();
+  
+    this.physics.pause();
+  
+    this.add
+      .rectangle(this.scale.width / 2, this.scale.height / 2, 520, 220, 0x0f172a, 0.92)
+      .setStrokeStyle(2, 0x38bdf8);
+  
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2 - 50, "Coleta finalizada!", {
+        fontFamily: "Arial",
+        fontSize: "30px",
+        color: "#ffffff",
+        fontStyle: "bold"
+      })
+      .setOrigin(0.5);
+  
+    this.add
+      .text(this.scale.width / 2, this.scale.height / 2 + 5, `XP obtido: +${this.collectedXP}`, {
+        fontFamily: "Arial",
+        fontSize: "26px",
+        color: "#86efac"
+      })
+      .setOrigin(0.5);
+  
+    this.time.delayedCall(2000, () => {
       this.scene.start(returnScene);
     });
   }
