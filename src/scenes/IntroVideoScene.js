@@ -35,7 +35,8 @@ export default class IntroVideoScene extends Phaser.Scene {
       const scaleY = H / video.height;
   
       video.setScale(
-        Math.max(scaleX, scaleY)
+        //Math.max(scaleX, scaleY)
+        Math.min(scaleX, scaleY)
       );
   
       video.play(false);
