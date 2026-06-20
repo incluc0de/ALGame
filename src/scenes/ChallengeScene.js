@@ -6,6 +6,9 @@ export default class ChallengeScene extends Phaser.Scene {
   async create() {
     addHeader(this, GameState.data);
     this.statusText = this.add.text(512, 120, "Carregando missão...", { fontFamily: "Arial", fontSize: "24px", color: "#fff" }).setOrigin(0.5);
+//---
+ 
+//---
     try {
       if (!GameState.data.currentChallenge) await this.createChallenge();
       this.renderChallenge();
@@ -67,10 +70,26 @@ export default class ChallengeScene extends Phaser.Scene {
       });
     
    //------------ 
+   const s = GameState.data;
+
+   addButton(this, 250, 565, "Enviar Solução", () => this.submitAnswer(), 230);
+   
+   addButton(
+     this,
+     512,
+     565,
+     s.xp >= 100 ? "Recuperar Foco -100 XP" : "Recuperar Foco Bloqueado",
+     () => this.useFocusBreak(),
+     260
+   );
+   
+   addButton(this, 775, 565, "Voltar ao Menu", () => {
+     GameState.resetSession();
+     this.scene.start("MenuScene");
+   }, 230);
     
-    
-    addButton(this, 360, 565, "Enviar Solução", () => this.submitAnswer(), 260);
-    addButton(this, 660, 565, "Voltar ao Menu", () => { GameState.resetSession(); this.scene.start("MenuScene"); }, 260);
+   // addButton(this, 360, 565, "Enviar Solução", () => this.submitAnswer(), 260);
+   // addButton(this, 660, 565, "Voltar ao Menu", () => { GameState.resetSession(); this.scene.start("MenuScene"); }, 260);
    
   }
   async submitAnswer() {
@@ -85,4 +104,31 @@ export default class ChallengeScene extends Phaser.Scene {
     else if (evaluation.gameAction === "offer_intervention") this.scene.start("InterventionScene");
     else alert(evaluation.feedback?.message || "Tente novamente.");
   }
+  //---
+  useFocusBreak() {
+
+    const s = GameState.data;
+  
+    const cost = 100;
+  
+    if (s.xp < cost) {
+      alert("Você precisa de pelo menos 100 XP para recuperar foco.");
+      return;
+    }
+  
+    if (s.focusBreaksUsed >= s.maxFocusBreaksPerChallenge) {
+      alert("Limite de pausas de foco atingido neste desafio.");
+      return;
+    }
+  
+    s.xp -= cost;
+    s.focusBreaksUsed += 1;
+    s.level = Math.floor(s.xp / 300) + 1;
+  
+    s.preGameReturnScene = "ChallengeScene";
+  
+    GameState.save();
+  
+    this.scene.start("PreGameXPScene");
+    }
 }

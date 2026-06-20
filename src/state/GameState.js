@@ -14,6 +14,11 @@ const defaultState = {
   attempts: 0,
   interventionsUsed: [],
   challengeStartTime: null,
+  
+  preGameReturnScene: "MenuScene",
+  focusBreaksUsed: 0,
+  maxFocusBreaksPerChallenge: 3,
+
   profile: CONFIG.DEFAULT_PLAYER.profile
 };
 export const GameState = {
@@ -35,7 +40,12 @@ export const GameState = {
     this.data.attempts = 0;
     this.data.interventionsUsed = [];
     this.data.challengeStartTime = null;
+   
+    this.data.preGameReturnScene = "MenuScene";
+    this.data.focusBreaksUsed = 0;  
+    
     this.save();
+   
   },
   startChallenge(challengeResponse) {
     this.data.currentChallenge = challengeResponse;

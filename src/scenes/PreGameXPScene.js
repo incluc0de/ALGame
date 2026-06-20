@@ -314,7 +314,11 @@ createAnimations() {
       .setOrigin(0.5);
 
     this.time.delayedCall(2000, () => {
-      this.scene.start("MenuScene");
+      //this.scene.start("MenuScene");
+      const returnScene = GameState.data.preGameReturnScene || "MenuScene";
+      GameState.data.preGameReturnScene = "MenuScene";
+      GameState.save();
+      this.scene.start(returnScene);
     });
   }
 }
