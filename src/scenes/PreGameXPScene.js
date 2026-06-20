@@ -23,8 +23,6 @@ export default class PreGameXPScene extends Phaser.Scene {
 
     this.xpText = null;
     this.timerText = null;
-
-    //---
     this.timerEvent = null;
   }
 
@@ -34,19 +32,28 @@ export default class PreGameXPScene extends Phaser.Scene {
     this.load.image("xp", "assets/xp.png");
     this.load.image("bomb", "assets/bomb.png");
 
-    /*this.load.spritesheet("player", "assets/player.png", {
-      frameWidth: 227,
-      frameHeight: 730
-    });*/
     this.load.spritesheet("player", "assets/player.png", {
       frameWidth: 300,
-      frameHeight: 700//1024 
+      frameHeight: 700
     });
   }
 
   create() {
     const W = CONFIG.GAME_WIDTH;
     const H = CONFIG.GAME_HEIGHT;
+
+    // Reset obrigatório sempre que a cena iniciar novamente
+    this.collectedXP = 0;
+    this.totalCollectedItems = 0;
+    this.timeLeft = XP_COLLECTION_TIME;
+    this.gameFinished = false;
+
+    if (this.timerEvent) {
+      this.timerEvent.remove(false);
+      this.timerEvent = null;
+    }
+
+    this.physics.resume();
 
     this.add.image(W / 2, H / 2, "fundo").setDisplaySize(W, H);
 
@@ -134,8 +141,15 @@ export default class PreGameXPScene extends Phaser.Scene {
       padding: { x: 10, y: 6 }
     });
 
+    const isFocusBreak =
+      GameState.data.preGameReturnScene === "ChallengeScene";
+
+    const title = isFocusBreak
+      ? "Recupere o foco coletando XP!"
+      : "Colete XP antes da missão!";
+
     this.add
-      .text(W / 2, 70, "Colete XP antes da missão!", {
+      .text(W / 2, 70, title, {
         fontFamily: "Arial",
         fontSize: "28px",
         color: "#ffffff",
@@ -143,10 +157,12 @@ export default class PreGameXPScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.time.addEvent({
+    this.timerEvent = this.time.addEvent({
       delay: 1000,
-      repeat: XP_COLLECTION_TIME - 1,
+      loop: true,
       callback: () => {
+        if (this.gameFinished) return;
+
         this.timeLeft -= 1;
         this.timerText.setText(`Tempo: ${this.timeLeft}`);
 
@@ -156,65 +172,43 @@ export default class PreGameXPScene extends Phaser.Scene {
       }
     });
   }
- /*
+
   createAnimations() {
-    this.anims.create({
-      key: "left",
-      frames: this.anims.generateFrameNumbers("player", {
-        start: 0,
-        end: 3
-      }),
-      frameRate: 8,
-      repeat: -1
-    });
+    if (!this.anims.exists("left")) {
+      this.anims.create({
+        key: "left",
+        frames: this.anims.generateFrameNumbers("player", {
+          start: 3,
+          end: 4
+        }),
+        frameRate: 6,
+        repeat: -1
+      });
+    }
 
-    this.anims.create({
-      key: "turn",
-      frames: [{ key: "player", frame: 4 }],
-      frameRate: 10
-    });
+    if (!this.anims.exists("turn")) {
+      this.anims.create({
+        key: "turn",
+        frames: [{ key: "player", frame: 2 }],
+        frameRate: 10
+      });
+    }
 
-    this.anims.create({
-      key: "right",
-      frames: this.anims.generateFrameNumbers("player", {
-        start: 5,
-        end: 8
-      }),
-      frameRate: 8,
-      repeat: -1
-    });
+    if (!this.anims.exists("right")) {
+      this.anims.create({
+        key: "right",
+        frames: this.anims.generateFrameNumbers("player", {
+          start: 0,
+          end: 1
+        }),
+        frameRate: 6,
+        repeat: -1
+      });
+    }
   }
-*/
 
-createAnimations() {
-  this.anims.create({
-    key: "left",
-    frames: this.anims.generateFrameNumbers("player", {
-      start: 3,
-      end: 4
-    }),
-    frameRate: 6,
-    repeat: -1
-  });
-
-  this.anims.create({
-    key: "turn",
-    frames: [{ key: "player", frame: 2 }],
-    frameRate: 10
-  });
-
-  this.anims.create({
-    key: "right",
-    frames: this.anims.generateFrameNumbers("player", {
-      start: 0,
-      end: 1
-    }),
-    frameRate: 6,
-    repeat: -1
-  });
-}
   update() {
-    if (this.gameFinished) return;
+    if (this.gameFinished || !this.player || !this.cursors) return;
 
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-180);
@@ -233,6 +227,8 @@ createAnimations() {
   }
 
   collectXP(player, xp) {
+    if (this.gameFinished) return;
+
     xp.disableBody(true, true);
 
     this.collectedXP += XP_VALUE;
@@ -252,6 +248,8 @@ createAnimations() {
   }
 
   spawnBug() {
+    if (this.gameFinished) return;
+
     const W = CONFIG.GAME_WIDTH;
 
     const x =
@@ -269,6 +267,8 @@ createAnimations() {
   }
 
   hitBomb(player, bomb) {
+    if (this.gameFinished) return;
+
     bomb.disableBody(true, true);
 
     this.collectedXP = Math.max(0, this.collectedXP - XP_PENALTY);
@@ -277,77 +277,43 @@ createAnimations() {
     player.setTint(0xff5555);
 
     this.time.delayedCall(300, () => {
-      player.clearTint();
+      if (player && player.active) {
+        player.clearTint();
+      }
     });
   }
 
-  /*finishPreGame() {
-    if (this.gameFinished) return;
-
-    const W = CONFIG.GAME_WIDTH;
-    const H = CONFIG.GAME_HEIGHT;
-
-    this.gameFinished = true;
-
-    GameState.data.xp += this.collectedXP;
-    GameState.data.level = Math.floor(GameState.data.xp / 300) + 1;
-    GameState.save();
-
-    this.physics.pause();
-
-    this.add
-      .rectangle(W / 2, H / 2, 520, 220, 0x0f172a, 0.92)
-      .setStrokeStyle(2, 0x38bdf8);
-
-    this.add
-      .text(W / 2, H / 2 - 50, "Coleta finalizada!", {
-        fontFamily: "Arial",
-        fontSize: "30px",
-        color: "#ffffff",
-        fontStyle: "bold"
-      })
-      .setOrigin(0.5);
-
-    this.add
-      .text(W / 2, H / 2 + 5, `XP obtido: +${this.collectedXP}`, {
-        fontFamily: "Arial",
-        fontSize: "26px",
-        color: "#86efac"
-      })
-      .setOrigin(0.5);
-
-    this.time.delayedCall(2000, () => {
-      //this.scene.start("MenuScene");
-      const returnScene = GameState.data.preGameReturnScene || "MenuScene";
-      GameState.data.preGameReturnScene = "MenuScene";
-      GameState.save();
-      this.scene.start(returnScene);
-    });
-  }*/
   finishPreGame() {
     if (this.gameFinished) return;
-  
+
     this.gameFinished = true;
-  
+
     if (this.timerEvent) {
       this.timerEvent.remove(false);
       this.timerEvent = null;
     }
-  
+
     GameState.data.xp += this.collectedXP;
     GameState.data.level = Math.floor(GameState.data.xp / 300) + 1;
-  
+
     const returnScene = GameState.data.preGameReturnScene || "MenuScene";
-  
+
     GameState.data.preGameReturnScene = "MenuScene";
     GameState.save();
-  
+
     this.physics.pause();
-  
+
     this.add
-      .rectangle(this.scale.width / 2, this.scale.height / 2, 520, 220, 0x0f172a, 0.92)
+      .rectangle(
+        this.scale.width / 2,
+        this.scale.height / 2,
+        520,
+        220,
+        0x0f172a,
+        0.92
+      )
       .setStrokeStyle(2, 0x38bdf8);
-  
+
     this.add
       .text(this.scale.width / 2, this.scale.height / 2 - 50, "Coleta finalizada!", {
         fontFamily: "Arial",
@@ -356,7 +322,7 @@ createAnimations() {
         fontStyle: "bold"
       })
       .setOrigin(0.5);
-  
+
     this.add
       .text(this.scale.width / 2, this.scale.height / 2 + 5, `XP obtido: +${this.collectedXP}`, {
         fontFamily: "Arial",
@@ -364,7 +330,7 @@ createAnimations() {
         color: "#86efac"
       })
       .setOrigin(0.5);
-  
+
     this.time.delayedCall(2000, () => {
       this.scene.start(returnScene);
     });
