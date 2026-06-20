@@ -17,6 +17,10 @@ const gameConfig = {
   height: CONFIG.GAME_HEIGHT,
   parent: "game",
   backgroundColor: "#111827",
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   dom: {
     createContainer: true
   },
