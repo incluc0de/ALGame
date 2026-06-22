@@ -16,9 +16,11 @@ export default class ChallengeScene extends Phaser.Scene {
   constructor() {
     super("ChallengeScene");
 
+    this.feedbackOverlay = null;
+    this.feedbackSpaceKey = null;
+
     this.answerElement = null;
     this.statusText = null;
-
     this.isSubmitting = false;
 
     this.sendButton = null;
@@ -27,60 +29,96 @@ export default class ChallengeScene extends Phaser.Scene {
   }
 
   async create() {
-
-  this.isSubmitting = false;
-  this.answerElement = null;
-  this.statusText = null;
-  this.sendButton = null;
-  this.focusButton = null;
-  this.menuButton = null;
-  this.input.keyboard.enabled = true;
-
+    this.isSubmitting = false;
+    this.answerElement = null;
+    this.statusText = null;
+    this.sendButton = null;
+    this.focusButton = null;
+    this.menuButton = null;
+    this.input.keyboard.enabled = true;
+  
     addHeader(this, GameState.data);
-
+  
     this.statusText = this.add.text(512, 120, "Carregando missão...", {
       fontFamily: "Arial",
       fontSize: "24px",
       color: "#fff"
     }).setOrigin(0.5);
-
+  
     try {
       if (!GameState.data.currentChallenge) {
         await this.createChallenge();
       }
-
+  
       this.renderChallenge();
+  
     } catch (e) {
-      this.statusText.setText(`Erro ao carregar desafio: ${e.message}`);
+      console.error(e);
+  
+      if (this.statusText) {
+        this.statusText.setText(`Erro ao carregar desafio: ${e.message}`);
+      }
     }
   }
 
   async createChallenge() {
-    const s = GameState.data;
+  const s = GameState.data;
 
-    const response = await AgentService.createChallenge({
-      sessionId: s.sessionId,
-      playerId: s.playerId,
-      profile: s.profile,
-      context: {
-        fase_atual: 1,
-        desempenho_recente: "baixo",
-        tentativas_medias: 3,
-        tempo_medio_resposta_segundos: 180
-      }
-    });
+  const topic =
+    s.learningPath?.currentTopic ||
+    s.profile?.topico ||
+    "variaveis";
 
-    GameState.startChallenge(response);
-  }
+  const level =
+    s.learningPath?.currentLevel ||
+    s.profile?.nivel_aprendizagem ||
+    "basico";
+
+  const profile = {
+    ...s.profile,
+    topico: topic,
+    nivel_aprendizagem: level
+  };
+
+  s.profile = profile;
+  GameState.save();
+
+  const response = await AgentService.createChallenge({
+    sessionId: s.sessionId,
+    playerId: s.playerId,
+    profile,
+    context: {
+      fase_atual: 1,
+      desempenho_recente: "baixo",
+      tentativas_medias: 3,
+      tempo_medio_resposta_segundos: 180
+    }
+  });
+
+  GameState.startChallenge(response);
+}
 
   renderChallenge() {
     const response = GameState.data.currentChallenge;
+
+    if (!response || !response.challenge) {
+      this.statusText?.setText("Desafio inválido. Gere uma nova missão.");
+      GameState.data.currentChallenge = null;
+      GameState.save();
+      return;
+    }
+
+    const challenge = response.challenge || response.desafio;
     const linguagem = GameState.data.profile?.linguagem || "pseudocodigo";
-    const challenge = response.challenge;
+
+    const topicId = GameState.data.learningPath?.currentTopic || "variaveis";
+    const levelId = GameState.data.learningPath?.currentLevel || "basico";
+    const topicTitle =
+      GameState.data.learningPath?.topics?.[topicId]?.title || topicId;
 
     this.statusText.destroy();
 
-    this.add.text(512, 90, "Missão: Floresta das Decisões", {
+    this.add.text(512, 90, `Missão: ${topicTitle} - ${levelId}`, {
       fontFamily: "Arial",
       fontSize: "26px",
       color: "#86efac",
@@ -117,19 +155,19 @@ export default class ChallengeScene extends Phaser.Scene {
 
     const placeholders = {
       pseudocodigo:
-        "Exemplo:\n Leia numero\nSE numero > 0 ENTÃO\n   Escreva 'positivo'",
+        "Exemplo:\nLeia numero\nSE numero > 0 ENTÃO\n   Escreva 'positivo'",
 
       portugol:
-        "Exemplo:\n leia(numero)\nse numero > 0 entao\n   escreval('positivo')\nfimse",
+        "Exemplo:\nleia(numero)\nse numero > 0 entao\n   escreval('positivo')\nfimse",
 
       javascript:
-        "Exemplo:\n let numero = 3;\nif(numero > 0){\n   console.log('positivo');\n}",
+        "Exemplo:\nlet numero = 3;\nif(numero > 0){\n   console.log('positivo');\n}",
 
       python:
-        "Exemplo:\n numero = 3\nif numero > 0:\n    print('positivo')",
+        "Exemplo:\nnumero = 3\nif numero > 0:\n    print('positivo')",
 
       c:
-        "Exemplo:\n int numero = 3;\nif(numero > 0){\n   printf('positivo');\n}"
+        "Exemplo:\nint numero = 3;\nif(numero > 0){\n   printf('positivo');\n}"
     };
 
     const placeholder = placeholders[linguagem] || placeholders.pseudocodigo;
@@ -220,10 +258,7 @@ export default class ChallengeScene extends Phaser.Scene {
     this.isSubmitting = true;
     this.setSceneButtonsEnabled(false);
 
-    showProcessingOverlay(
-      this,
-      "Mentor Byte está analisando sua solução..."
-    );
+    showProcessingOverlay(this, "Mentor Byte está analisando sua solução...");
 
     try {
       const s = GameState.data;
@@ -260,6 +295,10 @@ export default class ChallengeScene extends Phaser.Scene {
 
       hideProcessingOverlay(this);
 
+      this.isSubmitting = false;
+      this.setSceneButtonsEnabled(true);
+      this.input.keyboard.enabled = true;
+
       if (
         evaluation.evaluation?.isCorrect ||
         evaluation.gameAction === "finish_challenge"
@@ -273,26 +312,26 @@ export default class ChallengeScene extends Phaser.Scene {
         return;
       }
 
-      this.isSubmitting = false;
-      this.setSceneButtonsEnabled(true);
-
-      showToast(
-        this,
-        evaluation.feedback?.message || "Tente novamente.",
-        "#fde68a"
-      );
+      try {
+        this.showPedagogicalFeedback(
+          evaluation.feedback?.message ||
+          "Revise sua solução e tente novamente."
+        );
+      }
+      catch(err){
+        console.error("Erro no feedback:", err);
+      }
 
     } catch (error) {
+      console.error(error);
+
       hideProcessingOverlay(this);
 
       this.isSubmitting = false;
       this.setSceneButtonsEnabled(true);
+      this.input.keyboard.enabled = true;
 
-      showToast(
-        this,
-        "Não foi possível avaliar agora. Tente novamente.",
-        "#fca5a5"
-      );
+      showToast(this, "Não foi possível avaliar agora. Tente novamente.", "#fca5a5");
     }
   }
 
@@ -303,20 +342,12 @@ export default class ChallengeScene extends Phaser.Scene {
     const cost = 100;
 
     if (s.xp < cost) {
-      showToast(
-        this,
-        "Você precisa de pelo menos 100 XP para recuperar foco.",
-        "#fca5a5"
-      );
+      showToast(this, "Você precisa de pelo menos 100 XP para recuperar foco.", "#fca5a5");
       return;
     }
 
     if (s.focusBreaksUsed >= s.maxFocusBreaksPerChallenge) {
-      showToast(
-        this,
-        "Limite de pausas de foco atingido neste desafio.",
-        "#fca5a5"
-      );
+      showToast(this, "Limite de pausas de foco atingido neste desafio.", "#fca5a5");
       return;
     }
 
@@ -328,5 +359,69 @@ export default class ChallengeScene extends Phaser.Scene {
     GameState.save();
 
     this.scene.start("PreGameXPScene");
+  }
+
+  showPedagogicalFeedback(message) {
+    this.hidePedagogicalFeedback();
+  
+    if (this.answerElement) {
+      this.answerElement.setVisible(false);
+    }
+  
+    const W = this.scale.width;
+    const H = this.scale.height;
+  
+    this.feedbackOverlay = this.add.container(W / 2, H / 2);
+    this.feedbackOverlay.setDepth(10000);
+  
+    const bg = this.add.rectangle(0, 0, 760, 320, 0x0f172a, 0.98)
+      .setStrokeStyle(3, 0xfde68a);
+  
+    const title = this.add.text(0, -120, "Feedback do Mentor Byte", {
+      fontFamily: "Arial",
+      fontSize: "26px",
+      color: "#fde68a",
+      fontStyle: "bold"
+    }).setOrigin(0.5);
+  
+    const text = this.add.text(0, -35, message, {
+      fontFamily: "Arial",
+      fontSize: "20px",
+      color: "#ffffff",
+      align: "center",
+      wordWrap: { width: 660 },
+      lineSpacing: 8
+    }).setOrigin(0.5);
+  
+    const hint = this.add.text(0, 125, "ou pressione ESPAÇO para continuar", {
+      fontFamily: "Arial",
+      fontSize: "16px",
+      color: "#cbd5e1"
+    }).setOrigin(0.5);
+  
+    const retryButton = addButton(this, 0, 82, "Tentar novamente", () => {
+      this.hidePedagogicalFeedback();
+    }, 260);
+  
+    this.feedbackOverlay.add([bg, title, text, retryButton, hint]);
+  
+    this.input.keyboard.enabled = true;
+  
+    this.input.keyboard.once("keydown-SPACE", () => {
+      this.hidePedagogicalFeedback();
+    });
+  }
+  
+  hidePedagogicalFeedback() {
+    if (this.feedbackOverlay) {
+      this.feedbackOverlay.destroy();
+      this.feedbackOverlay = null;
+    }
+  
+    if (this.answerElement) {
+      this.answerElement.setVisible(true);
+    }
+  
+    this.input.keyboard.enabled = true;
   }
 }

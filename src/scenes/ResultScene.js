@@ -1,6 +1,7 @@
 import { GameState } from "../state/GameState.js";
 import { AgentService } from "../services/AgentService.js";
 import { calculateRewards } from "../utils/rewards.js";
+import { updateLearningProgress } from "../services/LearningPathService.js";
 
 import {
   addButton,
@@ -18,6 +19,7 @@ export default class ResultScene extends Phaser.Scene {
   }
 
   async create() {
+    this.isFinishing = false;
     addHeader(this, GameState.data);
 
     this.add.text(512, 105, "Missão Concluída!", {
@@ -34,6 +36,9 @@ export default class ResultScene extends Phaser.Scene {
     try {
       const finishResponse = await this.finishChallenge();
       const rewards = this.applyLocalRewards(finishResponse);
+
+      updateLearningProgress(GameState.data, finishResponse);
+      GameState.save();
 
       hideProcessingOverlay(this);
 
@@ -119,6 +124,11 @@ export default class ResultScene extends Phaser.Scene {
     const s = GameState.data;
     const summary = finishResponse.summary || {};
 
+    const topicId = s.learningPath?.currentTopic || "variaveis";
+    const levelId = s.learningPath?.currentLevel || "basico";
+    const topicState = s.learningPath?.topics?.[topicId];
+    const levelState = topicState?.levels?.[levelId];
+
     this.add.text(150, 180, `Pontuação: ${summary.finalScore ?? 100}`, {
       fontFamily: "Arial",
       fontSize: "24px",
@@ -172,18 +182,22 @@ export default class ResultScene extends Phaser.Scene {
       color: "#cbd5e1"
     });
 
-    const next = finishResponse.nextAction;
-
-    if (next) {
+    if (levelState) {
       this.add.text(
         590,
-        320,
-        `Próximo passo:\n${next.action || "create_next_challenge"}\nTópico: ${next.suggestedTopic || "condicionais"}`,
+        315,
+        `Trilha atual:\n${topicState.title} - ${levelId}\nDesafios: ${levelState.challengesCompleted}/5\nMédia: ${levelState.averageScore}\nStatus: ${
+          levelState.excellence
+            ? "Excelência 🏆"
+            : levelState.completed
+              ? "Concluído ✅"
+              : "Em progresso"
+        }`,
         {
           fontFamily: "Arial",
           fontSize: "18px",
           color: "#d1fae5",
-          lineSpacing: 8
+          lineSpacing: 7
         }
       );
     }
