@@ -56,7 +56,7 @@ export default class InterventionScene extends Phaser.Scene {
 
       showToast(
         this,
-        "Não foi possível gerar a intervenção. Tente novamente.",
+        "Não foi possível gerar a intervenção. \n Tente novamente.",
         "#fca5a5"
       );
 
