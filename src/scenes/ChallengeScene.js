@@ -17,8 +17,6 @@ export default class ChallengeScene extends Phaser.Scene {
     super("ChallengeScene");
 
     this.feedbackOverlay = null;
-    this.feedbackSpaceKey = null;
-
     this.answerElement = null;
     this.statusText = null;
     this.isSubmitting = false;
@@ -26,6 +24,7 @@ export default class ChallengeScene extends Phaser.Scene {
     this.sendButton = null;
     this.focusButton = null;
     this.menuButton = null;
+    this.retryFeedbackButton = null;
   }
 
   async create() {
@@ -35,26 +34,27 @@ export default class ChallengeScene extends Phaser.Scene {
     this.sendButton = null;
     this.focusButton = null;
     this.menuButton = null;
+    this.retryFeedbackButton = null;
     this.input.keyboard.enabled = true;
-  
+
     addHeader(this, GameState.data);
-  
+
     this.statusText = this.add.text(512, 120, "Carregando missão...", {
       fontFamily: "Arial",
       fontSize: "24px",
       color: "#fff"
     }).setOrigin(0.5);
-  
+
     try {
       if (!GameState.data.currentChallenge) {
         await this.createChallenge();
       }
-  
+
       this.renderChallenge();
-  
+
     } catch (e) {
       console.error(e);
-  
+
       if (this.statusText) {
         this.statusText.setText(`Erro ao carregar desafio: ${e.message}`);
       }
@@ -62,41 +62,57 @@ export default class ChallengeScene extends Phaser.Scene {
   }
 
   async createChallenge() {
-  const s = GameState.data;
+    const s = GameState.data;
 
-  const topic =
-    s.learningPath?.currentTopic ||
-    s.profile?.topico ||
-    "variaveis";
+    const topic =
+      s.learningPath?.currentTopic ||
+      s.profile?.topico ||
+      "variaveis";
 
-  const level =
-    s.learningPath?.currentLevel ||
-    s.profile?.nivel_aprendizagem ||
-    "basico";
+    const level =
+      s.learningPath?.currentLevel ||
+      s.profile?.nivel_aprendizagem ||
+      "basico";
 
-  const profile = {
-    ...s.profile,
-    topico: topic,
-    nivel_aprendizagem: level
-  };
+    const levelMap = {
+      basico: "iniciante",
+      intermediario: "intermediario",
+      avancado: "avancado",
+      iniciante: "iniciante"
+    };
 
-  s.profile = profile;
-  GameState.save();
+    const profile = {
+      ...s.profile,
+      topico: topic,
+      nivel_aprendizagem: levelMap[level] || level
+    };
 
-  const response = await AgentService.createChallenge({
-    sessionId: s.sessionId,
-    playerId: s.playerId,
-    profile,
-    context: {
-      fase_atual: 1,
-      desempenho_recente: "baixo",
-      tentativas_medias: 3,
-      tempo_medio_resposta_segundos: 180
+    s.profile = {
+      ...s.profile,
+      topico: topic,
+      nivel_aprendizagem: level
+    };
+
+    GameState.save();
+
+    const response = await AgentService.createChallenge({
+      sessionId: s.sessionId,
+      playerId: s.playerId,
+      profile,
+      context: {
+        fase_atual: 1,
+        desempenho_recente: "baixo",
+        tentativas_medias: 3,
+        tempo_medio_resposta_segundos: 180
+      }
+    });
+
+    if (!response || response.eventType === "error") {
+      throw new Error(response?.error?.message || "Erro ao criar desafio.");
     }
-  });
 
-  GameState.startChallenge(response);
-}
+    GameState.startChallenge(response);
+  }
 
   renderChallenge() {
     const response = GameState.data.currentChallenge;
@@ -108,7 +124,7 @@ export default class ChallengeScene extends Phaser.Scene {
       return;
     }
 
-    const challenge = response.challenge || response.desafio;
+    const challenge = response.challenge;
     const linguagem = GameState.data.profile?.linguagem || "pseudocodigo";
 
     const topicId = GameState.data.learningPath?.currentTopic || "variaveis";
@@ -308,19 +324,14 @@ export default class ChallengeScene extends Phaser.Scene {
       }
 
       if (evaluation.gameAction === "offer_intervention") {
-        this.scene.start("InterventionScene");
+        await this.showInterventionModal(evaluation);
         return;
       }
 
-      try {
-        this.showPedagogicalFeedback(
-          evaluation.feedback?.message ||
-          "Revise sua solução e tente novamente."
-        );
-      }
-      catch(err){
-        console.error("Erro no feedback:", err);
-      }
+      this.showPedagogicalFeedback(
+        evaluation.feedback?.message ||
+        "Revise sua solução e tente novamente."
+      );
 
     } catch (error) {
       console.error(error);
@@ -333,6 +344,189 @@ export default class ChallengeScene extends Phaser.Scene {
 
       showToast(this, "Não foi possível avaliar agora. Tente novamente.", "#fca5a5");
     }
+  }
+
+  async showInterventionModal(evaluation) {
+    showProcessingOverlay(
+      this,
+      "Mentor Byte está preparando ...\n ... uma intervenção pedagógica..."
+    );
+
+    try {
+      const s = GameState.data;
+      const cr = s.currentChallenge;
+      const rec = evaluation.interventionRecommendation || {};
+
+      const response = await AgentService.requestIntervention({
+        sessionId: s.sessionId,
+        playerId: s.playerId,
+        challengeId: cr.challengeId,
+        challenge: {
+          topico: cr.challenge.topico,
+          enunciado: cr.challenge.enunciado,
+          criterios_avaliacao:
+            cr.challenge.criterios_avaliacao || []
+        },
+        interventionContext: {
+          recommendedLevel:
+            rec.recommendedLevel || 1,
+          recommendedType:
+            rec.recommendedType || "motivacional",
+          mainErrorCode:
+            evaluation.evaluation?.mainErrorCode || null,
+          mainErrorDescription:
+            evaluation.evaluation?.mainErrorDescription || "",
+          numero_tentativa:
+            s.attempts,
+          perfil_cognitivo:
+            s.profile?.perfil_cognitivo || "",
+          intervencoes_anteriores:
+            s.interventionsUsed || []
+        }
+      });
+
+      GameState.data.lastIntervention = response;
+
+      if (response.intervention?.type) {
+        GameState.addIntervention(response.intervention.type);
+      }
+
+      GameState.save();
+
+      hideProcessingOverlay(this);
+
+      this.showPedagogicalFeedback(
+        this.formatIntervention(response.intervention || {})
+      );
+
+    } catch (error) {
+      console.error("Erro ao gerar intervenção:", error);
+
+      hideProcessingOverlay(this);
+
+      this.showPedagogicalFeedback(
+        "Não foi possível gerar a intervenção agora.\n Revise sua resposta e tente novamente."
+      );
+    }
+  }
+
+  formatIntervention(intervention) {
+    let text = "";
+
+    if (intervention.title) {
+      text += `${intervention.title}\n\n`;
+    }
+
+    if (intervention.message) {
+      text += `${intervention.message}\n\n`;
+    }
+
+    if (intervention.steps?.length) {
+      text += intervention.steps
+        .map((s, i) => `${i + 1}. ${s}`)
+        .join("\n");
+
+      text += "\n\n";
+    }
+
+    if (intervention.hints?.length) {
+      text += intervention.hints
+        .map((h, i) => `Dica ${i + 1}: ${h}`)
+        .join("\n");
+
+      text += "\n\n";
+    }
+
+    if (intervention.example) {
+      text += `Exemplo:\n${intervention.example.problem || ""}`;
+
+      if (Array.isArray(intervention.example.solution)) {
+        text += "\n\n" + intervention.example.solution.join("\n");
+      }
+    }
+
+    return text || "Observe o enunciado e tente novamente.";
+  }
+
+  showPedagogicalFeedback(message) {
+    this.hidePedagogicalFeedback();
+
+    if (this.answerElement) {
+      this.answerElement.setVisible(false);
+    }
+
+    this.setSceneButtonsEnabled(false);
+
+    const W = this.scale.width;
+    const H = this.scale.height;
+
+    this.feedbackOverlay = this.add.container(W / 2, H / 2);
+    this.feedbackOverlay.setDepth(10000);
+
+    const bg = this.add.rectangle(0, 0, 800, 380, 0x0f172a, 0.98)
+      .setStrokeStyle(3, 0xfde68a);
+
+    const title = this.add.text(0, -145, "Intervenção do Mentor Byte", {
+      fontFamily: "Arial",
+      fontSize: "26px",
+      color: "#fde68a",
+      fontStyle: "bold"
+    }).setOrigin(0.5);
+
+    const text = this.add.text(0, -45, message, {
+      fontFamily: "Arial",
+      fontSize: "19px",
+      color: "#ffffff",
+      align: "center",
+      wordWrap: { width: 700 },
+      lineSpacing: 8
+    }).setOrigin(0.5);
+
+    const hint = this.add.text(0, 165, "O código digitado foi mantido.", {
+      fontFamily: "Arial",
+      fontSize: "16px",
+      color: "#cbd5e1"
+    }).setOrigin(0.5);
+
+    this.feedbackOverlay.add([bg, title, text, hint]);
+
+    this.retryFeedbackButton = addButton(
+      this,
+      W / 2,
+      H / 2 + 120,
+      "Tentar novamente",
+      () => {
+        this.hidePedagogicalFeedback();
+      },
+      280
+    );
+
+    this.retryFeedbackButton.setDepth(10001);
+
+    this.input.keyboard.enabled = true;
+
+    this.input.keyboard.once("keydown-SPACE", () => {
+      this.hidePedagogicalFeedback();
+    });
+  }
+
+  hidePedagogicalFeedback() {
+    if (this.feedbackOverlay) {
+      this.feedbackOverlay.destroy();
+      this.feedbackOverlay = null;
+    }
+
+    if (this.retryFeedbackButton) {
+      this.retryFeedbackButton.destroy();
+      this.retryFeedbackButton = null;
+    }
+
+    if (this.answerElement) {
+      this.answerElement.setVisible(true);
+    }
+
+    this.setSceneButtonsEnabled(true);
+    this.input.keyboard.enabled = true;
   }
 
   useFocusBreak() {
@@ -359,69 +553,5 @@ export default class ChallengeScene extends Phaser.Scene {
     GameState.save();
 
     this.scene.start("PreGameXPScene");
-  }
-
-  showPedagogicalFeedback(message) {
-    this.hidePedagogicalFeedback();
-  
-    if (this.answerElement) {
-      this.answerElement.setVisible(false);
-    }
-  
-    const W = this.scale.width;
-    const H = this.scale.height;
-  
-    this.feedbackOverlay = this.add.container(W / 2, H / 2);
-    this.feedbackOverlay.setDepth(10000);
-  
-    const bg = this.add.rectangle(0, 0, 760, 320, 0x0f172a, 0.98)
-      .setStrokeStyle(3, 0xfde68a);
-  
-    const title = this.add.text(0, -120, "Feedback do Mentor Byte", {
-      fontFamily: "Arial",
-      fontSize: "26px",
-      color: "#fde68a",
-      fontStyle: "bold"
-    }).setOrigin(0.5);
-  
-    const text = this.add.text(0, -35, message, {
-      fontFamily: "Arial",
-      fontSize: "20px",
-      color: "#ffffff",
-      align: "center",
-      wordWrap: { width: 660 },
-      lineSpacing: 8
-    }).setOrigin(0.5);
-  
-    const hint = this.add.text(0, 125, "ou pressione ESPAÇO para continuar", {
-      fontFamily: "Arial",
-      fontSize: "16px",
-      color: "#cbd5e1"
-    }).setOrigin(0.5);
-  
-    const retryButton = addButton(this, 0, 82, "Tentar novamente", () => {
-      this.hidePedagogicalFeedback();
-    }, 260);
-  
-    this.feedbackOverlay.add([bg, title, text, retryButton, hint]);
-  
-    this.input.keyboard.enabled = true;
-  
-    this.input.keyboard.once("keydown-SPACE", () => {
-      this.hidePedagogicalFeedback();
-    });
-  }
-  
-  hidePedagogicalFeedback() {
-    if (this.feedbackOverlay) {
-      this.feedbackOverlay.destroy();
-      this.feedbackOverlay = null;
-    }
-  
-    if (this.answerElement) {
-      this.answerElement.setVisible(true);
-    }
-  
-    this.input.keyboard.enabled = true;
   }
 }
