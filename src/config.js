@@ -30,10 +30,10 @@ export const CONFIG = {
     playerId: "p001",
     sessionId: "sess_001",
     profile: {
-      nivel_aprendizagem: "iniciante",
+      nivel_aprendizagem: "avancado",
       topico: "variaveis",
       perfil_cognitivo: "TDAH",
-      linguagem: "Pseudocódigo",
+      linguagem: "Pseudocodigo",
       adaptacoes_preferenciais: [
         "enunciado_curto",
         "passos_sequenciais",
